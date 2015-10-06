@@ -1,0 +1,18 @@
+package KuramotoUnit;
+
+public class OriginalUnit extends Unit {
+
+	public OriginalUnit(double w, double dt, double K) {
+		super(w, dt, K);
+		
+	}
+	
+	@Override
+	public void calcValue() {
+		double r = rk.getImpulse(t);
+		double w = rk.getNaturalPhase()
+		rk.setThisPhase(r);
+	}
+	
+
+}

@@ -1,0 +1,10 @@
+package KuramotoUnit;
+
+public class UnitManage03 extends UnitManage {
+
+	public UnitManage03(double K, double dt) {
+		super(K, dt);
+	}
+	
+
+}

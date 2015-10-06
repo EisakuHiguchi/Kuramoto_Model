@@ -1,0 +1,4 @@
+INDEX VERSION 1.127+C:\Users\Iris\Dropbox\KuramotoModel\.metadata\.plugins\org.eclipse.jdt.core
+303761373.index
+1696347979.index
+4229261041.index

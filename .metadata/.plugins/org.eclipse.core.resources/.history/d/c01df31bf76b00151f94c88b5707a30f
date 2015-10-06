@@ -1,0 +1,145 @@
+package KuramotoUnit;
+
+import java.io.FileWriter;
+import java.util.ArrayList;
+import java.util.Random;
+
+public class _TestModule {
+
+	public static void main(String[] args) {
+		
+		// parameter
+		int num = 10;
+		int loop = 1000;
+		
+		double K = 3.2;
+		double dt = 0.025;
+		double sd = 0.8;
+		
+		_TestModule mod = new _TestModule();
+		
+		UnitManage03 um = new UnitManage03(K, dt);
+		for(int i = 0; i < num; i++) {
+			um.createUnit(mod.naturalWave(sd));
+		}
+		
+		um.setUnit(um.createOriginalUnit(3.0) , 0);
+//		um.setUnit(um.createOriginalUnit(2.0) , 1);
+//		um.setUnit(um.createOriginalUnit(1.0) , 2);
+//		um.setUnit(um.createOriginalUnit(0.5) , 3);
+		
+		try {
+			
+			FileWriter fw0 = new FileWriter("output0.txt");
+			FileWriter fw1 = new FileWriter("output1.txt");
+			FileWriter fw2 = new FileWriter("order.txt");
+			FileWriter fw3 = new FileWriter("output2.txt");
+			FileWriter fw4 = new FileWriter("output3.txt");
+			
+			for(int i = 0; i < loop; i++) {
+				um.nextStep();
+				um.calcValue();
+				fw2.write(um.getOrderPrm() + "\n");
+				fw0.write(um.getUnitData_Str_Phase() + "\n");
+				fw1.write(mod.getWriteData(um.getUnitData_Array_Phase()) + "\n");
+				fw3.write(mod.getWriteData_Unit(um.getAllunit())+ "\n");
+				fw4.write(mod.getWriteData_naturalWave(um.getAllunit())+ "\n");
+			}
+			
+			fw0.close();
+			fw1.close();
+			fw2.close();
+			fw3.close();
+			fw4.close();
+			
+		} catch (Exception e) {
+			System.out.println(e);
+		}
+		
+		mod.scriptFile(num, 0);
+		mod.scriptFile(num, 1);
+		mod.scriptFile(num, 2);
+		mod.scriptFile(num, 3);
+		
+		System.out.println("fin");
+	}
+	
+	public void scriptFile(int num, int opt) {
+		try {
+			FileWriter fw = new FileWriter("script" + opt + ".txt");
+			
+			fw.write("plot "
+					+ "\"C:\\\\Users\\\\Iris\\\\Dropbox\\\\KuramotoModel\\\\KuramotoModel03\\"
+					+ "\\output" + opt + ".txt\""
+					+ " u " + 1 + " w l \n");
+			
+			for(int i = 2; i < (num + 1); i++) {
+				fw.write("replot "
+						+ "\"C:\\\\Users\\\\Iris\\\\Dropbox\\\\KuramotoModel\\\\KuramotoModel03\\"
+						+ "\\output" + opt + ".txt\""
+						+ " u " + i + " w l \n");
+			}
+			
+			fw.close();			
+		} catch(Exception e) {
+			System.out.println(e);
+		}
+	}
+	
+	public void scriptFile(int num, int opt1, int opt2) {
+		try {
+			FileWriter fw = new FileWriter("script" + opt1 +
+					"_" + opt2 + ".txt");
+			
+			fw.write("plot "
+					+ "\"C:\\\\Users\\\\Iris\\\\Dropbox\\\\KuramotoModel\\\\KuramotoModel03\\"
+					+ "\\output" + opt + ".txt\""
+					+ " u " + 1 + " w l \n");
+			
+			for(int i = 2; i < (num + 1); i++) {
+				fw.write("replot "
+						+ "\"C:\\\\Users\\\\Iris\\\\Dropbox\\\\KuramotoModel\\\\KuramotoModel03\\"
+						+ "\\output" + opt + ".txt\""
+						+ " u " + i + " w l \n");
+			}
+			
+			fw.close();			
+		} catch(Exception e) {
+			System.out.println(e);
+		}
+	}
+	
+	private String getWriteData_naturalWave(ArrayList<Unit> array) {
+		String r = "";
+		for(Unit e: array) {
+			r = r + Math.sin(e.getWavePrm()) + " ";
+		}
+		return r;
+	}
+	
+	private String getWriteData_Unit(ArrayList<Unit> array) {
+		String r = "";
+		for(Unit e: array) {
+			r = r + Math.sin(e.getWavePrm() + e.getPhase()) + " ";
+		}
+		return r;
+	}
+	
+	private String getWriteData(ArrayList<Double> array) {
+		String r = "";
+		for(Double e: array) {
+			r = r + Math.sin(e) + " ";
+		}
+		return r;
+	}
+	
+	private double naturalWave(double sd) {
+		Random r = new Random();
+		double res = r.nextDouble();
+		while(!((res > (-2*Math.sqrt(3) * sd) )&& (res < 2*Math.sqrt(3) * sd))) {
+			res = r.nextDouble();
+		}
+		return res;
+	}
+	
+}

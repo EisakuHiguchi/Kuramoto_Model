@@ -1,0 +1,623 @@
+/******/ (function(modules) { // webpackBootstrap
+/******/ 	// The module cache
+/******/ 	var installedModules = {};
+
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+
+/******/ 		// Check if module is in cache
+/******/ 		if(installedModules[moduleId])
+/******/ 			return installedModules[moduleId].exports;
+
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = installedModules[moduleId] = {
+/******/ 			exports: {},
+/******/ 			id: moduleId,
+/******/ 			loaded: false
+/******/ 		};
+
+/******/ 		// Execute the module function
+/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+
+/******/ 		// Flag the module as loaded
+/******/ 		module.loaded = true;
+
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+
+
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__webpack_require__.m = modules;
+
+/******/ 	// expose the module cache
+/******/ 	__webpack_require__.c = installedModules;
+
+/******/ 	// __webpack_public_path__
+/******/ 	__webpack_require__.p = "";
+
+/******/ 	// Load entry module and return exports
+/******/ 	return __webpack_require__(0);
+/******/ })
+/************************************************************************/
+/******/ ([
+/* 0 */
+/***/ function(module, exports, __webpack_require__) {
+
+	(function() {
+	  var Oscillators, Plot, app;
+
+	  Oscillators = new __webpack_require__(1)("./models/oscillators");
+
+	  Plot = new __webpack_require__(1)("./models/plot");
+
+	  app = new Vue({
+	    el: "#app",
+	    data: {
+	      params: {
+	        N: {
+	          label: "$N$",
+	          min: 2,
+	          max: 30,
+	          value: 10,
+	          step: 1,
+	          number: true
+	        },
+	        k: {
+	          label: "$k$",
+	          min: 1,
+	          value: 9,
+	          step: 1,
+	          number: true
+	        },
+	        sd: {
+	          label: "$\\omega_{sd}$",
+	          min: 0,
+	          max: 1,
+	          step: 0.05,
+	          value: 0.3,
+	          range: true
+	        },
+	        J: {
+	          label: "$J$",
+	          min: 0,
+	          max: 4,
+	          step: 0.05,
+	          value: 1,
+	          range: true
+	        }
+	      }
+	    },
+	    computed: {
+	      kValue: function() {
+	        return Math.min(this.params.k.value, this.params.N.value - 1);
+	      },
+	      kMax: function() {
+	        return this.params.N.value - 1;
+	      }
+	    },
+	    methods: {
+	      start: function() {
+	        var ref, ref1, stageGraph, stagePlot;
+	        if ((ref = this.oscillators) != null) {
+	          ref.stop();
+	        }
+	        if ((ref1 = this.plot) != null) {
+	          ref1.stop();
+	        }
+	        stageGraph = new createjs.Stage($(".graph").get(0));
+	        this.oscillators = new Oscillators({
+	          stage: stageGraph,
+	          N: this.params.N.value,
+	          omega: {
+	            mean: 10,
+	            sd: this.params.sd.value
+	          },
+	          J: this.params.J.value,
+	          k: this.kValue
+	        });
+	        this.oscillators.render();
+	        this.oscillators.start();
+	        stagePlot = new createjs.Stage($(".plot").get(0));
+	        this.plot = new Plot({
+	          stage: stagePlot,
+	          y: (function(_this) {
+	            return function() {
+	              return _this.oscillators.getOrderParameter();
+	            };
+	          })(this)
+	        });
+	        this.plot.render();
+	        return this.plot.start();
+	      }
+	    }
+	  });
+
+	}).call(this);
+
+
+/***/ },
+/* 1 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var map = {
+		"./models/oscillator": 2,
+		"./models/oscillator.js": 2,
+		"./models/oscillators": 3,
+		"./models/oscillators.js": 3,
+		"./models/plot": 4,
+		"./models/plot.js": 4,
+		"./models/random_graph": 5,
+		"./models/random_graph.js": 5
+	};
+	function webpackContext(req) {
+		return __webpack_require__(webpackContextResolve(req));
+	};
+	function webpackContextResolve(req) {
+		return map[req] || (function() { throw new Error("Cannot find module '" + req + "'.") }());
+	};
+	webpackContext.keys = function webpackContextKeys() {
+		return Object.keys(map);
+	};
+	webpackContext.resolve = webpackContextResolve;
+	module.exports = webpackContext;
+	webpackContext.id = 1;
+
+
+/***/ },
+/* 2 */
+/***/ function(module, exports, __webpack_require__) {
+
+	(function() {
+	  var Oscillator;
+
+	  module.exports = Oscillator = (function() {
+	    Oscillator.renderInfo = {
+	      size: 10,
+	      scaleMag: 2
+	    };
+
+	    function Oscillator(id, oscillators) {
+	      this.id = id;
+	      this.oscillators = oscillators;
+	      this.connect = _.uniq(_.map(_.filter(this.oscillators.edges, (function(_this) {
+	        return function(edge) {
+	          return edge[0] === _this.id || edge[1] === _this.id;
+	        };
+	      })(this)), (function(_this) {
+	        return function(edge) {
+	          if (edge[0] === _this.id) {
+	            return edge[1];
+	          } else {
+	            return edge[0];
+	          }
+	        };
+	      })(this)));
+	      this.init();
+	    }
+
+	    Oscillator.prototype.init = function() {
+	      var omega;
+	      omega = this.oscillators.params.omega;
+	      this.omega = (Math.random() - 0.5) * omega.sd * 4 * Math.sqrt(3) + omega.mean;
+	      return this.theta = _.random(0, Math.PI * 2);
+	    };
+
+	    Oscillator.prototype.dTheta = function(thetas) {
+	      var sum, theta_i;
+	      theta_i = thetas[this.id];
+	      sum = 0;
+	      _.each(this.connect, function(j) {
+	        return sum += Math.sin(theta_i - thetas[j]);
+	      });
+	      return this.omega - this.oscillators.params.J / this.connect.length * sum;
+	    };
+
+	    Oscillator.prototype.render = function() {
+	      var canvas, r, stage, theta;
+	      stage = this.oscillators.stage;
+	      this.circle = new createjs.Shape();
+	      this.circle.graphics.beginFill("#FF0000");
+	      this.circle.graphics.drawCircle(0, 0, Oscillator.renderInfo.size);
+	      this.circle.graphics.endFill();
+	      theta = Math.PI * 2 * this.id / this.oscillators.N;
+	      r = this.oscillators.renderInfo.circleSize;
+	      canvas = this.oscillators.stage.canvas;
+	      this.circle.x = canvas.width / 2 + r * Math.cos(theta);
+	      this.circle.y = canvas.height / 2 + r * Math.sin(theta);
+	      this.circle.z = 2;
+	      stage.addChild(this.circle);
+	      return this.renderUpdate();
+	    };
+
+	    Oscillator.prototype.renderUpdate = function() {
+	      var m, scale;
+	      m = Oscillator.renderInfo.scaleMag;
+	      scale = (m - 1) * (Math.sin(this.theta) + 1) + 1;
+	      return this.circle.scaleX = this.circle.scaleY = scale;
+	    };
+
+	    return Oscillator;
+
+	  })();
+
+	}).call(this);
+
+
+/***/ },
+/* 3 */
+/***/ function(module, exports, __webpack_require__) {
+
+	(function() {
+	  var Oscillator, Oscillators, RandomGraph;
+
+	  Oscillator = __webpack_require__(2);
+
+	  RandomGraph = __webpack_require__(5);
+
+	  module.exports = Oscillators = (function() {
+	    function Oscillators(params) {
+	      var canvas, i, j, k, l, m, randomGraph, ref, ref1, ref2, ref3;
+	      this.N = params.N;
+	      this.stage = params.stage;
+	      this.params = params;
+	      this.listner = (function(_this) {
+	        return function() {
+	          return _this.simulate();
+	        };
+	      })(this);
+	      canvas = params.stage.canvas;
+	      this.renderInfo = {
+	        circleSize: Math.min(canvas.width, canvas.height) * 0.4
+	      };
+	      if (params.N <= params.k + 1) {
+	        this.edges = [];
+	        for (i = k = 0, ref = params.N - 2; 0 <= ref ? k <= ref : k >= ref; i = 0 <= ref ? ++k : --k) {
+	          for (j = l = ref1 = i + 1, ref2 = params.N - 1; ref1 <= ref2 ? l <= ref2 : l >= ref2; j = ref1 <= ref2 ? ++l : --l) {
+	            this.edges.push([i, j]);
+	          }
+	        }
+	      } else {
+	        randomGraph = new RandomGraph(params.N, params.k);
+	        this.edges = randomGraph.edges;
+	      }
+	      this.oscillators = new Array(params.N);
+	      for (i = m = 0, ref3 = params.N - 1; 0 <= ref3 ? m <= ref3 : m >= ref3; i = 0 <= ref3 ? ++m : --m) {
+	        this.oscillators[i] = new Oscillator(i, this);
+	      }
+	    }
+
+	    Oscillators.prototype.init = function() {
+	      return _.each(this.oscillators, function(o) {
+	        return o.init();
+	      });
+	    };
+
+	    Oscillators.prototype.get = function(i) {
+	      return this.oscillator[i];
+	    };
+
+	    Oscillators.prototype.getOrderParameter = function() {
+	      var x, y;
+	      x = 0;
+	      y = 0;
+	      _.each(this.oscillators, function(o) {
+	        x += Math.cos(o.theta);
+	        return y += Math.sin(o.theta);
+	      });
+	      x /= this.oscillators.length;
+	      y /= this.oscillators.length;
+	      return Math.sqrt(x * x + y * y);
+	    };
+
+	    Oscillators.prototype.render = function() {
+	      _.each(this.oscillators, function(o) {
+	        return o.render();
+	      });
+	      _.each(this.edges, (function(_this) {
+	        return function(edge) {
+	          var line, o1, o2;
+	          o1 = _this.oscillators[edge[0]];
+	          o2 = _this.oscillators[edge[1]];
+	          line = new createjs.Shape();
+	          line.graphics.ss(3).s("#000000").mt(o1.circle.x, o1.circle.y).lt(o2.circle.x, o2.circle.y).es();
+	          line.z = 1;
+	          return _this.stage.addChild(line);
+	        };
+	      })(this));
+	      this.stage.sortChildren(function(s1, s2) {
+	        return s1.z - s2.z;
+	      });
+	      return this.stage.update();
+	    };
+
+	    Oscillators.prototype.start = function() {
+	      this.init();
+	      return createjs.Ticker.addEventListener("tick", this.listner);
+	    };
+
+	    Oscillators.prototype.stop = function() {
+	      return createjs.Ticker.removeEventListener("tick", this.listner);
+	    };
+
+	    Oscillators.prototype.simulate = function() {
+	      var dt, k1, k2, k3, k4, thetas;
+	      dt = createjs.Ticker.getInterval() / 1000;
+	      thetas = _.map(this.oscillators, function(o) {
+	        return o.theta;
+	      });
+	      k1 = _.map(this.oscillators, function(o) {
+	        return o.dTheta(thetas);
+	      });
+	      k2 = _.map(this.oscillators, function(o) {
+	        return o.dTheta(_.map(thetas, function(v, i) {
+	          return v + k1[i] * dt / 2;
+	        }));
+	      });
+	      k3 = _.map(this.oscillators, function(o) {
+	        return o.dTheta(_.map(thetas, function(v, i) {
+	          return v + k2[i] * dt / 2;
+	        }));
+	      });
+	      k4 = _.map(this.oscillators, function(o) {
+	        return o.dTheta(_.map(thetas, function(v, i) {
+	          return v + k3[i] * dt;
+	        }));
+	      });
+	      _.each(this.oscillators, function(o, i) {
+	        o.theta += dt / 6 * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]);
+	        return o.renderUpdate();
+	      });
+	      return this.stage.update();
+	    };
+
+	    return Oscillators;
+
+	  })();
+
+	}).call(this);
+
+
+/***/ },
+/* 4 */
+/***/ function(module, exports, __webpack_require__) {
+
+	(function() {
+	  var Plot;
+
+	  module.exports = Plot = (function() {
+	    Plot.plotInfo = {
+	      num: 150
+	    };
+
+	    function Plot(params) {
+	      this.stage = params.stage;
+	      this.params = params;
+	      this.y = params.y;
+	      this.plots = [0, 0];
+	      this.listner = (function(_this) {
+	        return function() {
+	          return _this.update();
+	        };
+	      })(this);
+	    }
+
+	    Plot.prototype.init = function() {
+	      return this.plots = [0, 0];
+	    };
+
+	    Plot.prototype.start = function() {
+	      this.init();
+	      return createjs.Ticker.addEventListener("tick", this.listner);
+	    };
+
+	    Plot.prototype.stop = function() {
+	      return createjs.Ticker.removeEventListener("tick", this.listner);
+	    };
+
+	    Plot.prototype.update = function() {
+	      var y;
+	      y = this.y();
+	      if (this.plots.length >= Plot.plotInfo.num) {
+	        this.plots.shift();
+	      }
+	      this.plots.push(y);
+	      return this.renderPlot();
+	    };
+
+	    Plot.prototype.render = function() {
+	      var axisName_0, axisName_05, axisName_1, axisX, axisX05, canvas;
+	      canvas = this.stage.canvas;
+	      axisX = new createjs.Shape();
+	      axisX.graphics.ss(2).s("#000000").mt(0, canvas.height / 5).lt(canvas.width, canvas.height / 5).mt(0, canvas.height / 5 * 4).lt(canvas.width, canvas.height / 5 * 4).es();
+	      axisX.z = 1;
+	      this.stage.addChild(axisX);
+	      axisX05 = new createjs.Shape();
+	      axisX05.graphics.ss(1).s("#000000").mt(0, canvas.height / 2).lt(canvas.width, canvas.height / 2).es();
+	      axisX05.z = 1;
+	      this.stage.addChild(axisX05);
+	      axisName_0 = new createjs.Text("0", "20px Arial", "#000000");
+	      axisName_0.x = 0;
+	      axisName_0.y = canvas.height / 5 * 4 + 5;
+	      axisName_0.z = 2;
+	      this.stage.addChild(axisName_0);
+	      axisName_05 = new createjs.Text("0.5", "20px Arial", "#000000");
+	      axisName_05.x = 0;
+	      axisName_05.y = canvas.height / 2 + 5;
+	      axisName_05.z = 2;
+	      this.stage.addChild(axisName_05);
+	      axisName_1 = new createjs.Text("1", "20px Arial", "#000000");
+	      axisName_1.x = 0;
+	      axisName_1.y = canvas.height / 5 + 5;
+	      axisName_1.z = 2;
+	      this.stage.addChild(axisName_1);
+	      this.stage.sortChildren(function(s1, s2) {
+	        return s1.z - s2.z;
+	      });
+	      this.stage.update();
+	      return this.renderPlot();
+	    };
+
+	    Plot.prototype.renderPlot = function() {
+	      var N, canvas, g, height, i, j, ref, width, x0, y0;
+	      canvas = this.stage.canvas;
+	      if (this.plotShape) {
+	        this.stage.removeChild(this.plotShape);
+	      }
+	      this.plotShape = new createjs.Shape();
+	      x0 = 40;
+	      y0 = canvas.height / 5 * 4;
+	      width = canvas.width - x0 - 5;
+	      height = canvas.height / 5 * 3;
+	      g = this.plotShape.graphics.ss(2).s("#FF0000");
+	      N = this.plots.length;
+	      for (i = j = 0, ref = N - 1; 0 <= ref ? j <= ref : j >= ref; i = 0 <= ref ? ++j : --j) {
+	        g = g.mt(x0 + i / Plot.plotInfo.num * width, y0 - height * this.plots[i]).lt(x0 + (i + 1) / Plot.plotInfo.num * width, y0 - height * this.plots[i + 1]);
+	      }
+	      g.es();
+	      this.stage.addChild(this.plotShape);
+	      return this.stage.update();
+	    };
+
+	    return Plot;
+
+	  })();
+
+	}).call(this);
+
+
+/***/ },
+/* 5 */
+/***/ function(module, exports, __webpack_require__) {
+
+	(function() {
+	  var RandomGraph, generatePermutation;
+
+	  generatePermutation = function(perm, pre, post, n) {
+	    var elem, i, j, ref, rest;
+	    if (n > 0) {
+	      for (i = j = 0, ref = post.length; 0 <= ref ? j < ref : j > ref; i = 0 <= ref ? ++j : --j) {
+	        rest = post.slice(0);
+	        elem = rest.splice(i, 1);
+	        generatePermutation(perm, pre.concat(elem), rest, n - 1);
+	      }
+	    } else {
+	      perm.push(pre);
+	    }
+	  };
+
+
+	  /*
+	  extend Array.prototype
+	  e.g. [0, 1, 2].permutation(2)
+	  => [[0, 1], [0, 2], [1, 0], [1, 2], [2, 0], [2, 1]]
+	   */
+
+	  Array.prototype.permutation = function(n) {
+	    var perm;
+	    if (n == null) {
+	      n = this.length;
+	    }
+	    perm = [];
+	    generatePermutation(perm, [], this, n);
+	    return perm;
+	  };
+
+	  module.exports = RandomGraph = (function() {
+	    function RandomGraph(N, k) {
+	      var _createEdges, _hasEdge, _removeVertex, count, i, j, l, ref;
+	      this.N = N;
+	      this.k = k;
+	      this.edges = [];
+	      count = new Array(this.N);
+	      for (i = j = 0, ref = this.N - 1; 0 <= ref ? j <= ref : j >= ref; i = 0 <= ref ? ++j : --j) {
+	        count[i] = 0;
+	      }
+	      _createEdges = (function(_this) {
+	        return function(count) {
+	          var enableEdges, enableVertex, l, len, sampleEdge, sum, v;
+	          sum = _.reduce(count, function(mem, c) {
+	            return mem + c;
+	          });
+	          while (sum < _this.k * _this.N) {
+	            enableVertex = [];
+	            _.each(count, function(c, i) {
+	              if (c < _this.k) {
+	                return enableVertex.push(i);
+	              }
+	            });
+	            if (enableVertex.length === 0) {
+	              return true;
+	            }
+	            if (enableVertex.length === 1) {
+	              return false;
+	            }
+	            enableEdges = enableVertex.permutation(2);
+	            while (enableEdges.length > 0) {
+	              sampleEdge = _.sample(enableEdges);
+	              enableEdges = _.without(enableEdges, sampleEdge);
+	              if (!_hasEdge(sampleEdge)) {
+	                sum++;
+	                _this.edges.push(sampleEdge);
+	                for (l = 0, len = sampleEdge.length; l < len; l++) {
+	                  v = sampleEdge[l];
+	                  count[v]++;
+	                  if (count[v] >= _this.k) {
+	                    enableEdges = _.reject(enableEdges, function(edge) {
+	                      return (edge[0] === v) || (edge[1] === v);
+	                    });
+	                  }
+	                }
+	                continue;
+	              }
+	            }
+	            return _.filter(count, function(c) {
+	              return c === _this.k;
+	            }).length === _this.N;
+	          }
+	          return true;
+	        };
+	      })(this);
+	      _hasEdge = (function(_this) {
+	        return function(edge) {
+	          return _.some(_this.edges, function(e) {
+	            return ((edge[0] === e[0]) && (edge[1] === e[1])) || ((edge[0] === e[1]) && (edge[1] === e[0]));
+	          });
+	        };
+	      })(this);
+	      _removeVertex = (function(_this) {
+	        return function(count) {
+	          var v;
+	          v = _.sample(_this.edges);
+	          count[v] = 0;
+	          return _this.edges = _.reject(_this.edges, function(edge) {
+	            if (edge[0] === v) {
+	              count[edge[1]]--;
+	              return true;
+	            } else if (edge[1] === v) {
+	              count[edge[0]]--;
+	              return true;
+	            } else {
+	              return false;
+	            }
+	          });
+	        };
+	      })(this);
+	      for (i = l = 0; l <= 9; i = ++l) {
+	        if (_createEdges(count) === false) {
+	          _removeVertex(count);
+	        } else {
+	          break;
+	        }
+	      }
+	    }
+
+	    return RandomGraph;
+
+	  })();
+
+	}).call(this);
+
+
+/***/ }
+/******/ ]);

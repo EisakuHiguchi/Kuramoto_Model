@@ -1,0 +1,11 @@
+package KuramotoUnit;
+
+public class OriginalUnit extends Unit {
+
+	public OriginalUnit(double w, double dt, double K) {
+		super(w, dt, K);
+		// TODO Auto-generated constructor stub
+	}
+	
+
+}
